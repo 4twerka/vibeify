@@ -1,18 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { NavLink } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../components/firebase";
+import { setDoc, doc } from "firebase/firestore";
 
 function RegisterPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
+
+    const handleRegister =  async (e) => {
+        e.preventDefault();
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            const user = auth.currentUser;
+            console.log(user)
+            if (user) {
+                await setDoc(doc(db, "Users", user.uid), {
+                    email: user.email,
+                    name: name,
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
             <div className="bg-darkGrey p-8 rounded-xl w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
-                <form className="flex flex-col gap-4">
+                <form onSubmit={handleRegister} className="flex flex-col gap-4">
 
                     <div>
                         <label className="block mb-2 font-medium">Email</label>
                         <input
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             type="email"
                             placeholder="Enter your email"
                             className="w-full bg-bgGrey border border-gray-600 rounded-lg px-3 py-2 text-white"
@@ -22,6 +47,8 @@ function RegisterPage() {
                     <div>
                         <label className="block mb-2 font-medium">Username</label>
                         <input
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             type="text"
                             placeholder="Enter your username"
                             className="w-full bg-bgGrey border border-gray-600 rounded-lg px-3 py-2 text-white"
@@ -31,6 +58,8 @@ function RegisterPage() {
                     <div>
                         <label className="block mb-2 font-medium">Password</label>
                         <input
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             type="password"
                             placeholder="Create a password"
                             className="w-full bg-bgGrey border border-gray-600 rounded-lg px-3 py-2 text-white"

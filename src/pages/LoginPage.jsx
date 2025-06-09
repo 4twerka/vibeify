@@ -1,17 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { GoogleLoginButton } from "../components/GoogleLoginButton";
 import { NavLink } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../components/firebase";
 
 function LoginPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            window.location.href="/profile";
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
             <div className="bg-darkGrey p-8 rounded-xl w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-                <form className="flex flex-col gap-4">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div>
                         <label className="block mb-2 font-medium">Email</label>
                         <input
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             type="email"
                             placeholder="Enter your email"
                             className="w-full bg-bgGrey border border-gray-600 rounded-lg px-3 py-2 text-white"
@@ -21,6 +37,8 @@ function LoginPage() {
                     <div>
                         <label className="block mb-2 font-medium">Password</label>
                         <input
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             type="password"
                             placeholder="Enter your password"
                             className="w-full bg-bgGrey border border-gray-600 rounded-lg px-3 py-2 text-white"

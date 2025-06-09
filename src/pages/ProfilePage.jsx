@@ -1,11 +1,6 @@
-import React from "react";
-
-const user = {
-  name: "John Doe",
-  username: "@johndoe",
-  bio: "Music lover. Sharing my favorite tracks.",
-  avatar: "https://via.placeholder.com/150",
-};
+import React, { useEffect, useState } from "react";
+import { auth, db } from "../components/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const tracks = [
   { id: 1, title: "Track One", artist: "Artist A", image: "https://via.placeholder.com/150" },
@@ -16,23 +11,38 @@ const tracks = [
 ];
 
 function ProfilePage() {
+  const [userDetails, setUserDetails] = useState(null);
+  const fetchUserData = async () => {
+    auth.onAuthStateChanged(async(user) => {
+      const docRef = doc(db, "Users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setUserDetails(docSnap.data());
+      }
+    });
+  }
+  
+  useEffect(() => {
+    fetchUserData();
+  }, [])
+
   return (
     <div className="min-h-screen text-white p-4">
-      {/* Profile Header */}
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-4 mb-6">
+      {userDetails ? (
+        <div>
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 mb-6">
         <img
-          src={user.avatar}
-          alt={user.name}
+          src={userDetails.avatar}
+          alt={userDetails.name}
           className="w-32 h-32 rounded-full object-cover border-4 border-green-600"
         />
         <div>
-          <h1 className="text-2xl font-bold">{user.name}</h1>
-          <p className="text-gray-400">{user.username}</p>
-          <p className="mt-2 text-gray-300">{user.bio}</p>
+          <h1 className="text-2xl font-bold">{userDetails.name}</h1>
+          <p className="text-gray-400">{userDetails.name}</p>
+          <p className="mt-2 text-gray-300">No bio yet</p>
         </div>
       </div>
 
-      {/* Recommended Tracks */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Your Tracks</h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
@@ -52,6 +62,10 @@ function ProfilePage() {
           ))}
         </div>
       </div>
+        </div>
+      ) : (
+        <p className="text-center">Loading...</p>
+      )}
     </div>
   );
 }
