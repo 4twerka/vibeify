@@ -1,14 +1,25 @@
-import React from "react";
-
-const tracks = [
-  { id: 1, title: "Track One", artist: "Artist A", image: "https://via.placeholder.com/150" },
-  { id: 2, title: "Track Two", artist: "Artist B", image: "https://via.placeholder.com/150" },
-  { id: 3, title: "Track Three", artist: "Artist C", image: "https://via.placeholder.com/150" },
-  { id: 4, title: "Track Four", artist: "Artist D", image: "https://via.placeholder.com/150" },
-  { id: 5, title: "Track Five", artist: "Artist E", image: "https://via.placeholder.com/150" },
-];
+import React, { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebase";
+import { useMusicPlayer } from "./MusicPlayerContext";
 
 function Recomend() {
+  const [tracks, setTracks] = useState([]);
+  const { setCurrentTrack } = useMusicPlayer();
+
+  useEffect(() => {
+    const fetchTracks = async () => {
+      const querySnapshot = await getDocs(collection(db, "tracks"));
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTracks(data);
+    };
+
+    fetchTracks();
+  }, []);
+
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4 text-white">Recommended for You</h2>
@@ -16,6 +27,7 @@ function Recomend() {
         {tracks.map((track) => (
           <div
             key={track.id}
+            onClick={() => setCurrentTrack(track)}
             className="bg-bgGrey rounded-lg p-3 hover:bg-green-600 hover:scale-105 transition-all duration-300 cursor-pointer"
           >
             <img

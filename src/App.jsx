@@ -16,6 +16,9 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './components/firebase';
 
+import { MusicPlayer } from './components/MusicPlayer';
+import { MusicPlayerProvider } from './components/MusicPlayerContext';
+
 function App() {
   const [user, loading] = useAuthState(auth);
 
@@ -28,85 +31,92 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="flex bg-[#121212] min-h-screen">
-        {/* Sidebar тільки якщо залогінений */}
-        {user && (
-          <div className="hidden md:block">
-            <Sidebar />
+    <MusicPlayerProvider>
+      <Router>
+        <div className="flex bg-[#121212] min-h-screen pb-24">
+          {user && (
+            <div className="hidden md:block">
+              <Sidebar />
+            </div>
+          )}
+
+          <div className="flex-1">
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <MainPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/liked"
+                element={
+                  <ProtectedRoute>
+                    <LikedTracksPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/playlists"
+                element={
+                  <ProtectedRoute>
+                    <PlaylistsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/addtrack"
+                element={
+                  <ProtectedRoute>
+                    <AddTrackPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/addplaylist"
+                element={
+                  <ProtectedRoute>
+                    <CreatePlaylist />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/player"
+                element={
+                  <ProtectedRoute>
+                    <MusicPlayer />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
           </div>
-        )}
 
-        <div className="flex-1">
-          <Routes>
-            {/* Публічні сторінки */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-
-            {/* Захищені сторінки */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/liked"
-              element={
-                <ProtectedRoute>
-                  <LikedTracksPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/playlists"
-              element={
-                <ProtectedRoute>
-                  <PlaylistsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/addtrack"
-              element={
-                <ProtectedRoute>
-                  <AddTrackPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/addplaylist"
-              element={
-                <ProtectedRoute>
-                  <CreatePlaylist />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/edit"
-              element={
-                <ProtectedRoute>
-                  <EditPage />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          {user && <BottomNav />}
         </div>
-
-        {/* BottomNav тільки якщо залогінений */}
-        {user && <BottomNav />}
-      </div>
-    </Router>
+        <MusicPlayer />
+      </Router>
+    </MusicPlayerProvider>
   );
 }
 

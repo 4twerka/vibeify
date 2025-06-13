@@ -1,43 +1,86 @@
 import React, { useState } from "react";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../components/firebase";
 
 function AddTrackPage() {
   const [trackData, setTrackData] = useState({
-    image: "",
     title: "",
-    audio: "",
     artist: "",
     lyrics: "",
+    image: null,
+    audio: null,
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTrackData({ ...trackData, [name]: value });
+    const { name, value, files } = e.target;
+    if (files) {
+      setTrackData((prev) => ({ ...prev, [name]: files[0] }));
+    } else {
+      setTrackData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const uploadToUploadcare = async (file) => {
+    const formData = new FormData();
+    formData.append("UPLOADCARE_PUB_KEY", "dae2b75bb1bf9ed77d8a");
+    formData.append("UPLOADCARE_STORE", "1");
+    formData.append("file", file);
+
+    const res = await fetch("https://upload.uploadcare.com/base/", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data && data.file) {
+      return `https://ucarecdn.com/${data.file}/`;
+    } else {
+      throw new Error("Uploadcare error");
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Track added:", trackData);
-    alert("Track added successfully! (console log)");
+    setLoading(true);
+    try {
+      const imageUrl = await uploadToUploadcare(trackData.image);
+      const audioUrl = await uploadToUploadcare(trackData.audio);
+
+      const newTrack = {
+        title: trackData.title,
+        artist: trackData.artist,
+        lyrics: trackData.lyrics,
+        image: imageUrl,
+        audio: audioUrl,
+        createdAt: new Date(),
+      };
+
+      await addDoc(collection(db, "tracks"), newTrack);
+      alert("Track added successfully!");
+    } catch (err) {
+      console.error("Error adding track:", err);
+      alert("Error adding track.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="p-4 max-w-xl mx-auto">
       <h2 className="text-xl font-semibold mb-4 text-white">Add New Track</h2>
-      <form 
-        onSubmit={handleSubmit} 
-        className="bg-bgGrey p-4 rounded-lg flex flex-col gap-4"
-      >
+      <form onSubmit={handleSubmit} className="bg-bgGrey p-4 rounded-lg flex flex-col gap-4">
 
         <div>
-          <label className="block text-white mb-1">Track Image URL</label>
+          <label className="block text-white mb-1">Track Image (file)</label>
           <input
-            type="text"
+            type="file"
             name="image"
-            value={trackData.image}
             onChange={handleChange}
-            placeholder="https://..."
-            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white outline-none focus:ring-2 focus:ring-green-600"
+            accept="image/*"
             required
+            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
           />
         </div>
 
@@ -48,22 +91,20 @@ function AddTrackPage() {
             name="title"
             value={trackData.title}
             onChange={handleChange}
-            placeholder="Enter track title"
-            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white outline-none focus:ring-2 focus:ring-green-600"
             required
+            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
           />
         </div>
 
         <div>
-          <label className="block text-white mb-1">Track File (URL or file name)</label>
+          <label className="block text-white mb-1">Track File (audio)</label>
           <input
-            type="text"
+            type="file"
             name="audio"
-            value={trackData.audio}
             onChange={handleChange}
-            placeholder="Enter audio file URL or name"
-            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white outline-none focus:ring-2 focus:ring-green-600"
+            accept="audio/*"
             required
+            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
           />
         </div>
 
@@ -74,9 +115,8 @@ function AddTrackPage() {
             name="artist"
             value={trackData.artist}
             onChange={handleChange}
-            placeholder="Enter artist name"
-            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white outline-none focus:ring-2 focus:ring-green-600"
             required
+            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
           />
         </div>
 
@@ -86,17 +126,17 @@ function AddTrackPage() {
             name="lyrics"
             value={trackData.lyrics}
             onChange={handleChange}
-            placeholder="Enter lyrics (optional)"
             rows={4}
-            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
           />
         </div>
 
         <button
           type="submit"
-          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-full text-white transition-colors duration-300"
+          disabled={loading}
+          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-full text-white"
         >
-          Add Track
+          {loading ? "Uploading..." : "Add Track"}
         </button>
       </form>
     </div>
