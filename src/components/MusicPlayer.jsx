@@ -38,7 +38,7 @@ function MusicPlayer() {
   if (!currentTrack) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-[#1f1f1f] border-t border-gray-700 p-4 flex items-center justify-between gap-4 z-50 flex-wrap">
+    <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-[#1f1f1f] border-t border-gray-700 p-4 flex items-center justify-between gap-4 z-40 flex-wrap md:mb-0 mb-14">
       <div className="flex items-center gap-4 min-w-0 flex-1">
         <img
           src={currentTrack.image}

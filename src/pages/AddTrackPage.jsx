@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
-import { db } from "../components/firebase";
+import { db, auth } from "../components/firebase";
+import { useNavigate } from "react-router-dom";
 
 function AddTrackPage() {
   const [trackData, setTrackData] = useState({
@@ -12,6 +13,7 @@ function AddTrackPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -45,6 +47,9 @@ function AddTrackPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("Not authenticated");
+
       const imageUrl = await uploadToUploadcare(trackData.image);
       const audioUrl = await uploadToUploadcare(trackData.audio);
 
@@ -54,11 +59,12 @@ function AddTrackPage() {
         lyrics: trackData.lyrics,
         image: imageUrl,
         audio: audioUrl,
+        userId: user.uid,
         createdAt: new Date(),
       };
 
       await addDoc(collection(db, "tracks"), newTrack);
-      alert("Track added successfully!");
+      navigate("/profile");
     } catch (err) {
       console.error("Error adding track:", err);
       alert("Error adding track.");
@@ -71,9 +77,8 @@ function AddTrackPage() {
     <div className="p-4 max-w-xl mx-auto">
       <h2 className="text-xl font-semibold mb-4 text-white">Add New Track</h2>
       <form onSubmit={handleSubmit} className="bg-bgGrey p-4 rounded-lg flex flex-col gap-4">
-
         <div>
-          <label className="block text-white mb-1">Track Image (file)</label>
+          <label className="block text-white mb-1">Track Image</label>
           <input
             type="file"
             name="image"

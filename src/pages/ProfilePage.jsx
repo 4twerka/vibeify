@@ -1,21 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../components/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FiSettings, FiLogOut } from "react-icons/fi";
-
-const tracks = [
-  { id: 1, title: "Track One", artist: "Artist A", image: "https://via.placeholder.com/150" },
-  { id: 2, title: "Track Two", artist: "Artist B", image: "https://via.placeholder.com/150" },
-  { id: 3, title: "Track Three", artist: "Artist C", image: "https://via.placeholder.com/150" },
-  { id: 4, title: "Track Four", artist: "Artist D", image: "https://via.placeholder.com/150" },
-  { id: 5, title: "Track Five", artist: "Artist E", image: "https://via.placeholder.com/150" },
-];
+import { FiSettings, FiLogOut, FiTrash2 } from "react-icons/fi";
 
 function ProfilePage() {
   const [userDetails, setUserDetails] = useState(null);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [userTracks, setUserTracks] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,7 +16,6 @@ function ProfilePage() {
     auth.onAuthStateChanged(async (user) => {
       if (!user) return;
 
-      // Перевіряємо, чи користувач увійшов через Google
       const isGoogle = user.providerData.some(
         (provider) => provider.providerId === "google.com"
       );
@@ -38,7 +30,16 @@ function ProfilePage() {
         email: data.email || user.email || "No Email",
         photo: data.avatar || data.photo || user.photoURL || "/defaultPhoto.jpg",
         bio: data.bio || "",
+        uid: user.uid,
       });
+
+      const q = query(collection(db, "tracks"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const userTracksData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setUserTracks(userTracksData);
     });
   };
 
@@ -53,6 +54,19 @@ function ProfilePage() {
 
   const handleChangeProfile = () => {
     navigate("/edit");
+  };
+
+  const handleDeleteTrack = async (trackId) => {
+    const confirmDelete = window.confirm("Ви впевнені, що хочете видалити цей трек?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, "tracks", trackId));
+      setUserTracks((prev) => prev.filter((track) => track.id !== trackId));
+    } catch (err) {
+      console.error("Error deleting track:", err);
+      alert("Помилка при видаленні треку.");
+    }
   };
 
   return (
@@ -95,22 +109,33 @@ function ProfilePage() {
 
           <div>
             <h2 className="text-xl font-semibold mb-4">Your Tracks</h2>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-              {tracks.map((track) => (
-                <div
-                  key={track.id}
-                  className="bg-bgGrey rounded-lg p-3 hover:bg-green-600 hover:scale-105 transition-all duration-300 cursor-pointer"
-                >
-                  <img
-                    src={track.image}
-                    alt={track.title}
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                  />
-                  <h3 className="font-medium truncate">{track.title}</h3>
-                  <p className="text-gray-400 text-sm truncate">{track.artist}</p>
-                </div>
-              ))}
-            </div>
+            {userTracks.length === 0 ? (
+              <p className="text-gray-400">You don't have any tracks yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+                {userTracks.map((track) => (
+                  <div
+                    key={track.id}
+                    className="bg-bgGrey rounded-lg p-3 hover:bg-green-600 hover:scale-105 transition-all duration-300 relative"
+                  >
+                    <button
+                      onClick={() => handleDeleteTrack(track.id)}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                      title="Видалити трек"
+                    >
+                      <FiTrash2 size={18} />
+                    </button>
+                    <img
+                      src={track.image}
+                      alt={track.title}
+                      className="w-full h-32 object-cover rounded-md mb-2"
+                    />
+                    <h3 className="font-medium truncate">{track.title}</h3>
+                    <p className="text-gray-400 text-sm truncate">{track.artist}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ) : (
