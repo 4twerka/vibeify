@@ -102,24 +102,24 @@ function AddTrackPage() {
         </div>
 
         <div>
-          <label className="block text-white mb-1">Track File (audio)</label>
-          <input
-            type="file"
-            name="audio"
-            onChange={handleChange}
-            accept="audio/*"
-            required
-            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
-          />
-        </div>
-
-        <div>
           <label className="block text-white mb-1">Artist</label>
           <input
             type="text"
             name="artist"
             value={trackData.artist}
             onChange={handleChange}
+            required
+            className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-white mb-1">Track File (audio)</label>
+          <input
+            type="file"
+            name="audio"
+            onChange={handleChange}
+            accept="audio/*"
             required
             className="w-full px-3 py-2 rounded-lg bg-[#1f1f1f] text-white"
           />
