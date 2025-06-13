@@ -12,7 +12,7 @@ function LoginPage() {
         e.preventDefault();
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            window.location.href="/profile";
+            window.location.href = "/profile";
         } catch (error) {
             console.log(error);
         }

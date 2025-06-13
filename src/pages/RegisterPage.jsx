@@ -10,29 +10,30 @@ function RegisterPage() {
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
 
-    const handleRegister =  async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             const user = auth.currentUser;
-            console.log(user)
             if (user) {
                 await setDoc(doc(db, "Users", user.uid), {
                     email: user.email,
-                    name: name,
+                    displayName: name,
+                    avatar: "",
+                    bio: ""
                 });
+                window.location.href = "/profile";
             }
         } catch (error) {
             console.log(error);
         }
-    }
+    };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen text-white p-4">
             <div className="bg-darkGrey p-8 rounded-xl w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
                 <form onSubmit={handleRegister} className="flex flex-col gap-4">
-
                     <div>
                         <label className="block mb-2 font-medium">Email</label>
                         <input
