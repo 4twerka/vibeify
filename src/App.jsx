@@ -5,7 +5,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 
 import { auth } from './components/firebase';
 import { Sidebar } from './components/Sidebar';
-import { BottomNav } from './components/Bottomnav';
+import { BottomNav } from './components/BottomNav';
 import { MusicPlayer } from './components/MusicPlayer';
 
 import { MainPage } from './pages/MainPage';
