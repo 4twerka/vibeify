@@ -11,34 +11,39 @@ import {
   FaMicrophoneAlt,
 } from "react-icons/fa";
 import { useMusicPlayer } from "./MusicPlayerContext";
+import { useLikedTracks } from "./LikedTracksContext";
 
 function MusicPlayer() {
   const { currentTrack, playNext, playPrevious } = useMusicPlayer();
+  const { likedTracks, toggleLike, isTrackLiked } = useLikedTracks();
+
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [showVolume, setShowVolume] = useState(false);
   const [volume, setVolume] = useState(1);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [showLyrics, setShowLyrics] = useState(false);
+  const [showVolume, setShowVolume] = useState(false);
 
-  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const isMobile = window.innerWidth <= 768;
 
   useEffect(() => {
     if (audioRef.current) {
+      audioRef.current.volume = 1;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current && !isMobile) {
       audioRef.current.volume = volume;
     }
-  }, [volume]);
+  }, [volume, isMobile]);
 
   useEffect(() => {
     if (currentTrack) {
       setIsPlaying(true);
       setTimeout(() => {
         if (audioRef.current) {
-          if (isMobile) {
-            audioRef.current.volume = 1; // max volume for mobile
-          }
           audioRef.current.play();
         }
       }, 100);
@@ -55,8 +60,10 @@ function MusicPlayer() {
     setIsPlaying(!isPlaying);
   };
 
-  const toggleLike = () => {
-    setLiked(!liked);
+  const handleLikeClick = () => {
+    if (currentTrack) {
+      toggleLike(currentTrack);
+    }
   };
 
   const handleTimeUpdate = () => {
@@ -161,10 +168,11 @@ function MusicPlayer() {
           </button>
 
           <button
-            onClick={toggleLike}
+            onClick={handleLikeClick}
             className="text-white hover:text-red-500 transition text-xl"
+            title="Додати до вподобаного"
           >
-            {liked ? <FaHeart /> : <FaRegHeart />}
+            {isTrackLiked(currentTrack.id) ? <FaHeart /> : <FaRegHeart />}
           </button>
         </div>
       </div>
