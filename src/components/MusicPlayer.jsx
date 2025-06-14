@@ -6,21 +6,42 @@ import {
   FaStepForward,
   FaHeart,
   FaRegHeart,
+  FaVolumeUp,
+  FaVolumeMute,
+  FaMicrophoneAlt,
 } from "react-icons/fa";
 import { useMusicPlayer } from "./MusicPlayerContext";
 
 function MusicPlayer() {
-  const { currentTrack } = useMusicPlayer();
+  const { currentTrack, playNext, playPrevious } = useMusicPlayer();
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [showVolume, setShowVolume] = useState(false);
+  const [volume, setVolume] = useState(1);
   const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [showLyrics, setShowLyrics] = useState(false);
 
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
   useEffect(() => {
-    if (currentTrack && isPlaying) {
-      audioRef.current.play();
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  useEffect(() => {
+    if (currentTrack) {
+      setIsPlaying(true);
+      setTimeout(() => {
+        if (audioRef.current) {
+          if (isMobile) {
+            audioRef.current.volume = 1; // max volume for mobile
+          }
+          audioRef.current.play();
+        }
+      }, 100);
     }
   }, [currentTrack]);
 
@@ -39,119 +60,145 @@ function MusicPlayer() {
   };
 
   const handleTimeUpdate = () => {
-    setCurrentTime(audioRef.current.currentTime);
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
   };
 
   const handleLoadedMetadata = () => {
-    setDuration(audioRef.current.duration);
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
+    }
   };
 
   const handleSeek = (e) => {
     const time = parseFloat(e.target.value);
-    audioRef.current.currentTime = time;
-    setCurrentTime(time);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
   };
 
   const formatTime = (time) => {
-    const minutes = Math.floor(time / 60) || 0;
-    const seconds = Math.floor(time % 60) || 0;
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
-
-  const toggleLyrics = () => {
-    setShowLyrics(!showLyrics);
+    const minutes = Math.floor(time / 60)
+      .toString()
+      .padStart(1, "0");
+    const seconds = Math.floor(time % 60)
+      .toString()
+      .padStart(2, "0");
+    return `${minutes}:${seconds}`;
   };
 
   if (!currentTrack) return null;
 
   return (
-    <>
-      <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-[#1f1f1f] border-t border-gray-700 p-4 pt-2 flex flex-col gap-2 z-40 md:mb-0 mb-14">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
-            <img
-              src={currentTrack.image}
-              alt={currentTrack.title}
-              className="w-14 h-14 rounded object-cover"
-            />
-            <div className="overflow-hidden">
-              <h3 className="text-white font-medium truncate">
-                {currentTrack.title}
-              </h3>
-              <p className="text-sm text-gray-400 truncate">
-                {currentTrack.artist}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 mx-auto">
-            <button
-              onClick={() => console.log("Попередній трек")}
-              className="text-white hover:text-green-500 transition text-xl"
-            >
-              <FaStepBackward />
-            </button>
-            <button
-              onClick={togglePlay}
-              className="text-white hover:text-green-500 transition text-2xl"
-            >
-              {isPlaying ? <FaPause /> : <FaPlay />}
-            </button>
-            <button
-              onClick={() => console.log("Наступний трек")}
-              className="text-white hover:text-green-500 transition text-xl"
-            >
-              <FaStepForward />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleLike}
-              className="text-white hover:text-red-500 transition text-xl"
-            >
-              {liked ? <FaHeart /> : <FaRegHeart />}
-            </button>
-            <button
-              onClick={toggleLyrics}
-              className="text-white hover:text-yellow-400 transition text-sm border border-gray-600 px-3 py-1 rounded"
-            >
-              Lyrics
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-gray-400">
-          <span>{formatTime(currentTime)}</span>
-          <input
-            type="range"
-            min={0}
-            max={duration || 0}
-            step={0.1}
-            value={currentTime}
-            onChange={handleSeek}
-            className="flex-1 appearance-none h-1 bg-gray-500 rounded-lg cursor-pointer"
+    <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-[#1f1f1f] border-t border-gray-700 p-4 flex flex-col gap-3 z-40 md:mb-0 mb-14">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <img
+            src={currentTrack.image}
+            alt={currentTrack.title}
+            className="w-14 h-14 rounded object-cover"
           />
-          <span>{formatTime(duration)}</span>
+          <div className="overflow-hidden">
+            <h3 className="text-white font-medium truncate">{currentTrack.title}</h3>
+            <p className="text-sm text-gray-400 truncate">{currentTrack.artist}</p>
+          </div>
         </div>
 
-        <audio
-          ref={audioRef}
-          src={currentTrack.audio}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-        />
+        <div className="flex items-center gap-4 mx-auto">
+          <button
+            onClick={playPrevious}
+            className="text-white hover:text-green-500 transition text-xl"
+          >
+            <FaStepBackward />
+          </button>
+          <button
+            onClick={togglePlay}
+            className="text-white hover:text-green-500 transition text-2xl"
+          >
+            {isPlaying ? <FaPause /> : <FaPlay />}
+          </button>
+          <button
+            onClick={playNext}
+            className="text-white hover:text-green-500 transition text-xl"
+          >
+            <FaStepForward />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3 relative">
+          {!isMobile && (
+            <>
+              <button
+                onClick={() => setShowVolume(!showVolume)}
+                className="text-white hover:text-green-500 transition text-xl"
+                title="Гучність"
+              >
+                {volume === 0 ? <FaVolumeMute /> : <FaVolumeUp />}
+              </button>
+
+              {showVolume && (
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="absolute -top-10 w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                />
+              )}
+            </>
+          )}
+
+          <button
+            onClick={() => setShowLyrics(!showLyrics)}
+            className="text-white hover:text-purple-400 transition text-xl"
+            title="Показати текст пісні"
+          >
+            <FaMicrophoneAlt />
+          </button>
+
+          <button
+            onClick={toggleLike}
+            className="text-white hover:text-red-500 transition text-xl"
+          >
+            {liked ? <FaHeart /> : <FaRegHeart />}
+          </button>
+        </div>
       </div>
 
-      {showLyrics && (
-        <div className="fixed bottom-28 left-0 right-0 md:left-64 bg-[#1f1f1f] text-white px-6 py-4 z-40 border-t border-gray-700 max-h-60 overflow-y-auto">
-          <h4 className="text-lg font-semibold mb-2">Lyrics</h4>
-          <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
-            {currentTrack.lyrics || "Oopss... no lyrics for this track 😔"}
-          </p>
+      <audio
+        ref={audioRef}
+        src={currentTrack.audio}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+      />
+
+      <div className="w-full flex items-center gap-2">
+        <span className="text-xs text-gray-400 w-10 text-right">
+          {formatTime(currentTime)}
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={duration}
+          value={currentTime}
+          onChange={handleSeek}
+          className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+        />
+        <span className="text-xs text-gray-400 w-10 text-left">
+          {formatTime(duration)}
+        </span>
+      </div>
+
+      {showLyrics && currentTrack.lyrics && (
+        <div className="mt-2 max-h-40 overflow-y-auto p-3 bg-gray-800 rounded-md text-sm text-gray-200 leading-relaxed">
+          <pre className="whitespace-pre-wrap">{currentTrack.lyrics}</pre>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

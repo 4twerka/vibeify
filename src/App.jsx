@@ -33,7 +33,7 @@ function App() {
   return (
     <MusicPlayerProvider>
       <Router>
-        <div className="flex bg-[#121212] min-h-screen pb-24">
+        <div className="flex bg-[#121212] min-h-screen">
           {user && (
             <div className="hidden md:block">
               <Sidebar />

@@ -1,14 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../components/firebase";
-import { doc, getDoc, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+} from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FiSettings, FiLogOut, FiTrash2 } from "react-icons/fi";
+import { FaPlay } from "react-icons/fa";
+import { useMusicPlayer } from "../components/MusicPlayerContext";
 
 function ProfilePage() {
   const [userDetails, setUserDetails] = useState(null);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [userTracks, setUserTracks] = useState([]);
+  const { setCurrentTrack } = useMusicPlayer();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,6 +80,8 @@ function ProfilePage() {
     }
   };
 
+  const { playTrack } = useMusicPlayer();
+
   return (
     <div className="min-h-screen text-white p-4 relative">
       <div className="absolute top-4 right-4 flex items-center gap-4">
@@ -113,23 +126,34 @@ function ProfilePage() {
               <p className="text-gray-400">You don't have any tracks yet.</p>
             ) : (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-                {userTracks.map((track) => (
+                {userTracks.map((track, index) => (
                   <div
                     key={track.id}
-                    className="bg-bgGrey rounded-lg p-3 hover:bg-green-600 hover:scale-105 transition-all duration-300 relative"
+                    className="bg-bgGrey rounded-lg p-3 hover:bg-green-600 hover:scale-105 transition-all duration-300 relative group"
                   >
                     <button
                       onClick={() => handleDeleteTrack(track.id)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 z-10"
                       title="Видалити трек"
                     >
                       <FiTrash2 size={18} />
                     </button>
-                    <img
-                      src={track.image}
-                      alt={track.title}
-                      className="w-full h-32 object-cover rounded-md mb-2"
-                    />
+
+                    <div className="relative">
+                      <img
+                        src={track.image}
+                        alt={track.title}
+                        className="w-full h-32 object-cover rounded-md mb-2"
+                      />
+                      <button
+                        onClick={() => setCurrentTrack(track)}
+                        className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md"
+                        title="Play"
+                      >
+                        <FaPlay className="text-white text-xl" />
+                      </button>
+                    </div>
+
                     <h3 className="font-medium truncate">{track.title}</h3>
                     <p className="text-gray-400 text-sm truncate">{track.artist}</p>
                   </div>
