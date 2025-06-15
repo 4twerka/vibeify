@@ -25,7 +25,7 @@ function BottomNav() {
       </NavLink>
 
       <NavLink 
-        to="/playlists"
+        to="/soon"
         className={({ isActive }) =>
           `flex flex-col items-center transition-colors duration-300 cursor-pointer ${isActive ? 'text-green-400' : ''}`
         }>

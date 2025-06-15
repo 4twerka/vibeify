@@ -23,6 +23,7 @@ import { MusicPlayerProvider } from './components/MusicPlayerContext';
 import { LikedTracksProvider } from './components/LikedTracksContext';
 import { PlaylistProvider } from './components/PlaylistContext';
 import { AuthProvider } from './components/AuthContext';
+import { ComingSoon } from './pages/ComingSoon';
 
 function App() {
   const [user, loading] = useAuthState(auth);
@@ -113,6 +114,15 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <MusicPlayer />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/soon"
+                      element={
+                        <ProtectedRoute>
+                          <ComingSoon />
                         </ProtectedRoute>
                       }
                     />

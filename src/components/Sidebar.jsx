@@ -65,7 +65,7 @@ function Sidebar() {
                 </NavLink>
 
                 <NavLink 
-                    to="/playlists" 
+                    to="/soon" 
                     className={({ isActive }) =>
                         `mb-4 flex items-center gap-3 cursor-pointer transition-colors duration-300 
                         ${isActive ? 'text-green-400' : 'hover:text-green-400'}`
