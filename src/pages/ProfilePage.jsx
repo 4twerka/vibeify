@@ -19,7 +19,7 @@ function ProfilePage() {
   const [userDetails, setUserDetails] = useState(null);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [userTracks, setUserTracks] = useState([]);
-  const { setCurrentTrack } = useMusicPlayer();
+  const { setCurrentTrack, playTrack, stopTrack } = useMusicPlayer();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -59,6 +59,7 @@ function ProfilePage() {
   }, [location.pathname]);
 
   const handleLogout = async () => {
+    stopTrack();
     await signOut(auth);
     navigate("/login");
   };
@@ -79,8 +80,6 @@ function ProfilePage() {
       alert("Помилка при видаленні треку.");
     }
   };
-
-  const { playTrack } = useMusicPlayer();
 
   return (
     <div className="min-h-screen text-white p-4 relative">
@@ -146,7 +145,7 @@ function ProfilePage() {
                         className="w-full h-32 object-cover rounded-md mb-2"
                       />
                       <button
-                        onClick={() => setCurrentTrack(track)}
+                        onClick={() => playTrack(userTracks, index)}
                         className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md"
                         title="Play"
                       >

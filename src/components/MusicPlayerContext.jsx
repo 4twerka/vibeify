@@ -34,6 +34,11 @@ export const MusicPlayerProvider = ({ children }) => {
     }
   };
 
+  const stopTrack = () => {
+    setTrackList([]);
+    setCurrentIndex(0);
+  };
+
   return (
     <MusicPlayerContext.Provider
       value={{
@@ -44,6 +49,7 @@ export const MusicPlayerProvider = ({ children }) => {
         setCurrentTrack,
         playNext,
         playPrevious,
+        stopTrack,
       }}
     >
       {children}
